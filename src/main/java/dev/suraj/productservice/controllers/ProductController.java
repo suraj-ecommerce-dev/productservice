@@ -1,10 +1,14 @@
 package dev.suraj.productservice.controllers;
 
+import dev.suraj.productservice.dtos.GenericProductDto;
 import dev.suraj.productservice.models.Product;
 import dev.suraj.productservice.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/products")
@@ -17,8 +21,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public String getAllProducts(){
-        return "Hello World";
+    public List<Product> getAllProducts(){
+        return productService.getAllProducts();
     }
 
     @GetMapping("{id}")
@@ -27,12 +31,14 @@ public class ProductController {
     }
 
     @PostMapping
-    public void createProduct(){
+    public GenericProductDto createProduct(@RequestBody GenericProductDto genericProductDto){
+        return productService.createProduct(genericProductDto);
 
     }
 
     @DeleteMapping("{id}")
-    public void deleteProductById(){
+    public void deleteProductById(@PathVariable("id") Long id){
+        productService.deleteProductById(id);
 
     }
 
