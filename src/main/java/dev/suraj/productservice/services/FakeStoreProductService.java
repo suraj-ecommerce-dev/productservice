@@ -2,13 +2,17 @@ package dev.suraj.productservice.services;
 
 import dev.suraj.productservice.dtos.FakeStoreProductDto;
 import dev.suraj.productservice.dtos.GenericProductDto;
+import dev.suraj.productservice.exceptions.NotFoundException;
 import dev.suraj.productservice.models.Category;
 import dev.suraj.productservice.models.Product;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ public class FakeStoreProductService implements ProductService{
     }
 
     @Override
-    public Product getProductById(Long id) {
+    public Product getProductById(Long id) throws NotFoundException {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         ResponseEntity<FakeStoreProductDto> response = restTemplate.
@@ -33,6 +37,10 @@ public class FakeStoreProductService implements ProductService{
 
         HttpStatusCode responseCode = response.getStatusCode();
         FakeStoreProductDto fakeStoreProductDto = response.getBody();
+
+        if(fakeStoreProductDto == null){
+            throw new NotFoundException("Product with id: "+id+" doesn't exists.");
+        }
 
         if(responseCode.equals(HttpStatus.OK)){
             return convertFakeStoreProductDtoToProduct(fakeStoreProductDto);
@@ -61,9 +69,18 @@ public class FakeStoreProductService implements ProductService{
     }
 
     @Override
-    public void deleteProductById(Long id) {
+    public Product deleteProductById(Long id) {
         RestTemplate restTemplate = restTemplateBuilder.build();
-        restTemplate.delete(fakeStoreProducturl+"/{id}", FakeStoreProductDto.class,id);
+
+        RequestCallback requestCallback = restTemplate.acceptHeaderRequestCallback(FakeStoreProductDto.class);
+
+        ResponseExtractor<ResponseEntity<FakeStoreProductDto>> responseExtractor = restTemplate.
+                responseEntityExtractor(FakeStoreProductDto.class);
+
+        ResponseEntity<FakeStoreProductDto> response =  restTemplate.execute(fakeStoreProducturl+"/{id}",
+                HttpMethod.DELETE, requestCallback, responseExtractor, id);
+
+        return convertFakeStoreProductDtoToProduct(response.getBody());
     }
 
     @Override

@@ -1,24 +1,22 @@
 package dev.suraj.productservice.controllers;
 
 import dev.suraj.productservice.dtos.GenericProductDto;
+import dev.suraj.productservice.exceptions.NotFoundException;
 import dev.suraj.productservice.models.Product;
 import dev.suraj.productservice.services.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/products")
+@AllArgsConstructor
 public class ProductController {
 
     private ProductService productService;
-
-    public ProductController(@Qualifier("fakeStoreProductService") ProductService productService){
-        this.productService = productService;
-    }
 
     @GetMapping
     public List<Product> getAllProducts(){
@@ -26,7 +24,7 @@ public class ProductController {
     }
 
     @GetMapping("{id}")
-    public Product getProductById(@PathVariable("id") Long id){
+    public Product getProductById(@PathVariable("id") Long id) throws NotFoundException {
         return productService.getProductById(id);
     }
 
@@ -37,13 +35,12 @@ public class ProductController {
     }
 
     @DeleteMapping("{id}")
-    public void deleteProductById(@PathVariable("id") Long id){
-        productService.deleteProductById(id);
-
+    public ResponseEntity<Product> deleteProductById(@PathVariable("id") Long id){
+        ResponseEntity<Product> responseEntity = new ResponseEntity<>(
+                productService.deleteProductById(id),
+                HttpStatus.OK
+        );
+        return responseEntity;
     }
 
-    @PutMapping("{id}")
-    public void updateProductById(){
-
-    }
 }
